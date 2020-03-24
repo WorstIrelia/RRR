@@ -1,10 +1,12 @@
 #include <cassert>
 #include <iostream>
+#include <stack>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #define INF 0x3f3f3f3f
 #define VISITED -1
+#define UNVISITED -3
 #define FINISH 0
 #define UNFINISH -2
 
@@ -17,6 +19,9 @@ public:
     // the coordinate (-1,-1) is invalid/unitialized
     Position(int r = -1, int c = -1) : row(r), col(c) {}
     int row, col;
+    // bool operator==(const Position& rsh) const {
+    //    return row == rsh.row && col == rsh.col;
+    //}
 };
 
 // convenient functions to print and equality compare Positions
@@ -126,9 +131,7 @@ public:
         return true;
     }
 
-    // bool same_state();
-
-    int dfs(int moves, int& max_moves) {
+    void dfs(int moves, bool all_solutions_flag, bool all_visualize_flag) {
         // if (max_moves != -1 && moves > max_moves) {
         //    if (state.count({robots})) {
         //        return state[{robots}];
@@ -136,66 +139,177 @@ public:
         //    state[{robots}] = UNFINISH;
         //    return UNFINISH;
         //}
-        std::cout << "moves = " << moves << std::endl;
+        assert(!state.count({robots}) || state[{robots}] == UNVISITED);
+        if (moves > max_deep) {
+            return;
+        }
+        if (moves == max_deep && all_visualize_flag) {
+            all_visualize.push_back(stack);
+        }
+        search_deep = std::max(search_deep, (int)stack.size());
         // print();
-        if (judge_puzzle_finish()) {
-            max_moves = std::min(max_moves, moves);
-            std::cout << "bbbb" << std::endl;
-            std::cout << "max_moves = " << max_moves << std::endl;
-            return FINISH;
+        if (!all_visualize_flag && judge_puzzle_finish()) {
+            // max_moves = std::min(max_moves, moves);
+            // std::cout << "bbbb" << std::endl;
+            // std::cout << "max_moves = " << max_moves << std::endl;
+            // for (auto& elem : stack) {
+            //    std::cout << getRobot(elem.first) << " "
+            //              << directions[elem.second] << std::endl;
+            //}
+            all_solutions.push_back(stack);
+            return;
         }
-        if (state.count({robots}) && state[{robots}] != UNFINISH) {
-            std::cout << "aaaa" << std::endl;
-            return state[{robots}];
-        }
+        // if (state.count({robots})) {
+        //    std::cout << "aaaa" << std::endl;
+        //    return state[{robots}];
+        //}
         state[{robots}] = VISITED;
-        int next_state;
-        int current_state = INF;  // inf
-        bool all_is_unfinish = false;
+        // int next_state;
+        // int current_state = INF;  // inf
+        // bool all_is_unfinish = false;
+        // bool all_is_visited = true;
+
+        // std::vector<Robot> test({{{3, 1}, 'A'}, {{4, 1}, 'B'}, {{2, 1},
+        // 'C'}});
         for (unsigned int i = 0; i < numRobots(); ++i) {
             for (size_t j = 0; j < directions.size(); ++j) {
                 Position pos = getRobotPosition(i);
-                std::cout << pos.row << " " << pos.col << std::endl;
+                // if (robots[0].pos == test[0].pos &&
+                //    robots[1].pos == test[1].pos &&
+                //    robots[2].pos == test[2].pos) {
+                //    std::cout << "fuck " << next_state << std::endl;
+                //}
+                // std::cout << pos.row << " " << pos.col << std::endl;
+                //
+                if (!all_solutions_flag && all_solutions.size()) {
+                    return;
+                }
                 if (moveRobot(i, directions[j])) {
-                    next_state = dfs(moves + 1, max_moves);
-                    if (next_state == VISITED || next_state == UNFINISH) {
-                        if (next_state == UNFINISH) {
-                            all_is_unfinish = true;
-                        }
+                    if (state.count({robots}) && state[{robots}] == VISITED) {
                         restoreRobot(i, pos);
                         continue;
                     }
-                    all_is_unfinish = false;
-                    current_state = std::min(current_state, next_state);
+                    stack.push_back({i, j});
+                    dfs(moves + 1, all_solutions_flag, all_visualize_flag);
+                    // find one solution, return
+                    // if (next_state == VISITED) {
+                    //    restoreRobot(i, pos);
+
+                    //    // if (robots[0].pos == test[0].pos &&
+                    //    //    robots[1].pos == test[1].pos &&
+                    //    //    robots[2].pos == test[2].pos) {
+                    //    //    std::cout << "fuck " << next_state << std::endl;
+                    //    //    std::cout << "f i = " << i << " " <<
+                    //    directions[j]
+                    //    //              << std::endl;
+                    //    //}
+                    //    continue;
+                    //}
+                    // all_is_visited = false;
+                    // all_is_unfinish = false;
+                    // current_state = std::min(current_state, next_state);
                     restoreRobot(i, pos);
+                    stack.pop_back();
                 }
             }
         }
         // store_current_state();
-        if (all_is_unfinish) {
-            printf("nonono\n");
-            state[{robots}] = UNFINISH;
-            return UNFINISH;
-        }
-        state[{robots}] = current_state + 1;
-        return current_state + 1;
+        // if (all_is_unfinish) {
+        //    printf("nonono\n");
+        //    state[{robots}] = UNFINISH;
+        //    return UNFINISH;
+        //}
+        // if (all_is_visited) {
+        //    printf("all is visited\n");
+        //    // state[{robots}] = VISITED;
+        //    // return VISITED;
+        //}
+        state[{robots}] = UNVISITED;
+        return;
     }
-    void pri(int ans) {
-        while (ans--) {
-            bool pri = true;
-            for (unsigned int i = 0; i < numRobots() && pri; ++i) {
-                for (size_t j = 0; j < directions.size() && pri; ++j) {
-                    Position pos = getRobotPosition(i);
-                    if (moveRobot(i, directions[j])) {
-                        if(state[{robots}] == ans){
-                            print();
-                            pri = false;
-                            break;
-                        }
-                        restoreRobot(i, pos);
-                    }
-                }
+    void pri_one_solution() {
+        assert(all_solutions.size() == 1);
+        print();
+        std::vector<std::pair<int, int>>& ans = all_solutions.front();
+        for (auto&& elem : ans) {
+            moveRobot(elem.first, directions[elem.second]);
+            std::cout << "robot " << getRobot(elem.first) << " moves "
+                      << directions[elem.second] << std::endl;
+            print();
+        }
+    }
+    void pri_all_solution() {
+        print();
+        std::cout << all_solutions.size() << " different "
+                  << all_solutions.front().size()
+                  << " moves solutions:" << std::endl;
+        for (auto&& ans : all_solutions) {
+            std::cout << std::endl;
+            for (auto&& elem : ans) {
+                std::cout << "robot " << getRobot(elem.first) << " moves "
+                          << directions[elem.second] << std::endl;
             }
+            std::cout << "All goals are satisfied after 6 moves" << std::endl;
+        }
+    }
+
+    void set_max_deep(int max_moves) {
+        max_deep = max_moves;
+        state.clear();
+    }
+
+    bool find_solution(){
+        return all_solutions.size() > 0;
+    }
+
+    bool may_have_solution() { return max_deep == search_deep; }
+
+    bool no_solution() {
+        return (search_deep < max_deep) || all_solutions.size() == 0;
+    }
+
+    void visual(std::vector<std::pair<int, int>>& path,
+                std::vector<std::vector<char>>& reach, int target,
+                int current) {
+        Position pos = getRobotPosition(target);
+        if (reach[pos.row - 1][pos.col - 1] == '.') {
+            reach[pos.row - 1][pos.col - 1] = current + '0';
+        } else {
+            reach[pos.row - 1][pos.col - 1] = std::min(
+                    reach[pos.row - 1][pos.col - 1], (char)(current + '0'));
+        }
+        if (current == (int)path.size()) {
+            return;
+        }
+        Position store_pos = getRobotPosition(path[current].first);
+        assert(moveRobot(path[current].first,
+                         directions[path[current].second]));
+        visual(path, reach, target, current + 1);
+        restoreRobot(path[current].first, store_pos);
+    }
+
+    void visualize(char ch) {
+        auto reach = std::vector<std::vector<char>>(
+                rows, std::vector<char>(cols, '.'));
+        int index = -1;
+        for (unsigned int i = 0; i < numRobots(); ++i) {
+            if (getRobot(i) == ch) {
+                index = i;
+                break;
+            }
+        }
+        if (index == -1) {
+            return;
+        }
+        for (auto&& ans : all_visualize) {
+            visual(ans, reach, index, 0);
+        }
+        std::cout << "Reachable by robot " << ch << std::endl;
+        for (size_t i = 0; i < reach.size(); ++i) {
+            for (size_t j = 0; j < reach[i].size(); ++j) {
+                std::cout << reach[i][j] << " ";
+            }
+            std::cout << std::endl;
         }
     }
 
@@ -232,11 +346,12 @@ private:
     // the board geometry
     int rows;
     int cols;
-    std::vector<std::vector<char> > board;
-    std::vector<std::vector<bool> > vertical_walls;
-    std::vector<std::vector<bool> > horizontal_walls;
+    std::vector<std::vector<char>> board;
+    std::vector<std::vector<bool>> vertical_walls;
+    std::vector<std::vector<bool>> horizontal_walls;
 
     // my data structure
+    int search_deep, max_deep;
     static std::vector<std::string> directions;
     struct dir_step {
         int step_x;
@@ -268,6 +383,9 @@ private:
         }
     };
     std::unordered_map<RobotsPosition, int, hash_func> state;
+    std::vector<std::pair<int, int>> stack;
+    std::vector<std::vector<std::pair<int, int>>> all_solutions;
+    std::vector<std::vector<std::pair<int, int>>> all_visualize;
 
     // the names and current positions of the robots
     std::vector<Robot> robots;

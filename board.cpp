@@ -54,6 +54,7 @@ Board::Board(int r, int c) {
     for (int i = 0; i < cols; i++) {
         horizontal_walls[0][i] = horizontal_walls[rows][i] = true;
     }
+    search_deep = 0;
 }
 
 // ===================
@@ -179,7 +180,6 @@ void Board::placeRobot(const Position& p, char a) {
 }
 
 bool Board::moveRobot(int i, const std::string& direction) {
-    std::cout << direction << std::endl;
     Position pos = getRobotPosition(i);
     char robot = getRobot(i);
     Position des_pos = pos;
@@ -190,14 +190,14 @@ bool Board::moveRobot(int i, const std::string& direction) {
             break;
         }
     }
-    std::cout << step.step_x << " " << step.step_y << std::endl;
     while (judge_move(des_pos,
                       {des_pos.row + step.step_x, des_pos.col + step.step_y})) {
         des_pos.row += step.step_x;
         des_pos.col += step.step_y;
     }
+
+
     if (des_pos == pos) {
-        std::cout << "???" << std::endl;
         return false;
     }
     setspot(des_pos, robot);

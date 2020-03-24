@@ -137,15 +137,44 @@ int main(int argc, char* argv[]) {
     // YOUR CODE STARTS HERE
     //
     //
-    if (max_moves == -1) {
-        max_moves = INF;
+    // if (max_moves == -1) {
+    //    max_moves = INF;
+    //}
+    if (visualize == ' ') {
+        int cur_moves = 0;
+        if(max_moves == -1){
+            max_moves = INF;
+        }
+        do {
+            board.set_max_deep(cur_moves);
+            board.dfs(0, all_solutions, false);
+            cur_moves += 1;
+        } while (board.may_have_solution() && cur_moves <= max_moves && !board.find_solution());
+    } else {
+        board.set_max_deep(max_moves);
+        board.dfs(0, all_solutions, visualize != ' ');
     }
-    int ans = board.dfs(0, max_moves);
-    std::cout << "ans = " << ans << std::endl;
-    std::cout << "ans = " << max_moves << std::endl;
-    board.print();
-    printf("===============================\n");
-    board.pri(ans);
+    if (visualize != ' ') {
+        board.visualize(visualize);
+    } else {
+        if (board.no_solution()) {
+            board.print();
+            if (max_moves == -1) {
+                std::cout << "no solutions" << std::endl;
+            } else {
+                std::cout << "no solution with " << max_moves << " or fewer moves" << std::endl;
+            }
+        } else {
+            if (all_solutions) {
+                board.pri_all_solution();
+            } else {
+                board.pri_one_solution();
+            }
+        }
+    }
+    // std::cout << "ans = " << ans << std::endl;
+    //board.print();
+    // board.pri(ans);
 
     // for now...  an example of how to use the board print function
 }
