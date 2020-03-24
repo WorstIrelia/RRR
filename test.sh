@@ -11,8 +11,8 @@
 ./richochet_robots ./puzzle2.txt # one solution
 ./richochet_robots ./puzzle4.txt # one solution
 ./richochet_robots ./puzzle5.txt # one solution
-./richochet_robots ./puzzle6.txt # one solution
+#./richochet_robots ./puzzle6.txt # one solution, too slow
 ./richochet_robots ./puzzle7.txt # one solution
-# ./richochet_robots ./puzzle3.txt # one solution, find one solution is slow
-# ./richochet_robots ./puzzle8.txt # one solution, find one solution is slow
+# ./richochet_robots ./puzzle3.txt # one solution, finding one solution is slow
+# ./richochet_robots ./puzzle8.txt # one solution, finding one solution is slow
 
