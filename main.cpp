@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
     } else {
         if (board.no_solution()) {
             board.print();
-            if (max_moves == -1) {
+            if (max_moves == INF) {
                 std::cout << "no solutions" << std::endl;
             } else {
                 std::cout << "no solution with " << max_moves << " or fewer moves" << std::endl;
